@@ -2,7 +2,6 @@
   <div class="story-extract-form">
     <h2>Extract Stories</h2>
 
-    <!-- Add status messages -->
     <div v-if="status.message" :class="['status-message', status.type]">
       {{ status.message }}
     </div>
@@ -33,27 +32,46 @@
       </div>
 
       <div class="form-group">
-        <label for="planningLevel">Planning Level</label>
-        <input
-          id="planningLevel"
-          v-model.lazy="formData['v1.planningLevel']"
-          type="text"
-          class="form-control"
-          placeholder="Scope:1005"
-          required
-        >
-      </div>
+        <label>Select Scope</label>
+        <div class="scope-selection">
+          <div class="radio-group">
+            <input
+              type="radio"
+              id="planningLevel"
+              name="scopeType"
+              value="planningLevel"
+              v-model="selectedScope"
+            >
+            <label for="planningLevel">Planning Level</label>
+            <input
+              v-if="selectedScope === 'planningLevel'"
+              v-model.lazy="formData['v1.planningLevel']"
+              type="text"
+              class="form-control"
+              placeholder="Scope:1005"
+              required
+            >
+          </div>
 
-      <div class="form-group">
-        <label for="team">Team</label>
-        <input
-          id="team"
-          v-model.lazy="formData['v1.team']"
-          type="text"
-          class="form-control"
-          placeholder="Team:1889"
-          required
-        >
+          <div class="radio-group">
+            <input
+              type="radio"
+              id="team"
+              name="scopeType"
+              value="team"
+              v-model="selectedScope"
+            >
+            <label for="team">Team</label>
+            <input
+              v-if="selectedScope === 'team'"
+              v-model.lazy="formData['v1.team']"
+              type="text"
+              class="form-control"
+              placeholder="Team:1889"
+              required
+            >
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -142,6 +160,7 @@ export default {
   },
   data() {
     return {
+      selectedScope: 'planningLevel', // Default selection
       formData: {
         'v1.token': '',
         'v1.url': '',
@@ -156,7 +175,7 @@ export default {
       ],
       status: {
         message: '',
-        type: 'info' // 'success', 'error', or 'info'
+        type: 'info'
       }
     };
   },
@@ -183,7 +202,7 @@ export default {
       try {
         this.status = { message: 'Submitting...', type: 'info' };
 
-        // Combine state fields into comma-separated string
+        // Create a copy of formData without the unselected scope
         const formDataToSend = {
           ...this.formData,
           states: this.stateFields
@@ -191,6 +210,13 @@ export default {
             .filter(state => state !== '')
             .join(',')
         };
+
+        // Remove the unselected scope field
+        if (this.selectedScope === 'planningLevel') {
+          delete formDataToSend['v1.team'];
+        } else {
+          delete formDataToSend['v1.planningLevel'];
+        }
 
         console.log('Sending data:', formDataToSend);
         const response = await storyService.extractStories(formDataToSend);
@@ -342,5 +368,26 @@ label {
   padding: 5px;
   border-radius: 4px;
   border: 1px solid #ddd;
+}
+
+.scope-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.radio-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.radio-group input[type="text"] {
+  flex: 1;
+}
+
+.radio-group label {
+  margin-bottom: 0;
+  font-weight: normal;
 }
 </style>
