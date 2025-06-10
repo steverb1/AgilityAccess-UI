@@ -7,12 +7,12 @@
       {{ status.message }}
     </div>
 
-    <form @submit.prevent="handleSubmit">
+    <div class="form-container">
       <div class="form-group">
         <label for="token">V1 Token</label>
         <input
           id="token"
-          v-model="formData['v1.token']"
+          v-model.lazy="formData['v1.token']"
           type="password"
           class="form-control"
           placeholder="Enter your V1 token"
@@ -24,7 +24,7 @@
         <label for="url">V1 URL</label>
         <input
           id="url"
-          v-model="formData['v1.url']"
+          v-model.lazy="formData['v1.url']"
           type="url"
           class="form-control"
           placeholder="https://www16.v1host.com/api-examples"
@@ -36,7 +36,7 @@
         <label for="planningLevel">Planning Level</label>
         <input
           id="planningLevel"
-          v-model="formData['v1.planningLevel']"
+          v-model.lazy="formData['v1.planningLevel']"
           type="text"
           class="form-control"
           placeholder="Scope:1005"
@@ -48,7 +48,7 @@
         <label for="team">Team</label>
         <input
           id="team"
-          v-model="formData['v1.team']"
+          v-model.lazy="formData['v1.team']"
           type="text"
           class="form-control"
           placeholder="Team:1889"
@@ -60,7 +60,7 @@
         <label for="fromClosedDate">From Closed Date</label>
         <input
           id="fromClosedDate"
-          v-model="formData.fromClosedDate"
+          v-model.lazy="formData.fromClosedDate"
           type="date"
           class="form-control"
           required
@@ -71,7 +71,7 @@
         <label for="states">States (comma-separated)</label>
         <input
           id="states"
-          v-model="formData.states"
+          v-model.lazy="formData.states"
           type="text"
           class="form-control"
           placeholder="Ready for Build, Build, Done"
@@ -83,7 +83,8 @@
         <label>
           <input
             type="checkbox"
-            v-model="formData.includeStoryPoints"
+            :checked="formData.includeStoryPoints === 'true'"
+            @change="e => formData.includeStoryPoints = e.target.checked ? 'true' : 'false'"
           >
           Include Story Points
         </label>
@@ -93,19 +94,20 @@
         <label>
           <input
             type="checkbox"
-            v-model="formData.includeTeamName"
+            :checked="formData.includeTeamName === 'true'"
+            @change="e => formData.includeTeamName = e.target.checked ? 'true' : 'false'"
           >
           Include Team Name
         </label>
       </div>
 
-      <button type="submit" class="submit-button">Extract Stories</button>
-    </form>
+      <button type="button" @click.prevent="handleSubmit" class="submit-button">Extract Stories</button>
+    </div>
   </div>
 </template>
 
 <script>
-import storyService from '@/services/storyService';
+import { storyService } from '@/services/storyService';
 
 export default {
   name: 'StoryExtractForm',
@@ -118,8 +120,8 @@ export default {
         'v1.team': '',
         fromClosedDate: '',
         states: '',
-        includeStoryPoints: true,
-        includeTeamName: true
+        includeStoryPoints: 'true',
+        includeTeamName: 'true'
       },
       status: {
         message: '',
@@ -132,14 +134,8 @@ export default {
       try {
         this.status = { message: 'Submitting...', type: 'info' };
 
-        // Format the data for the API
-        const formDataToSend = {
-          ...this.formData,
-          states: this.formData.states.split(',').map(state => state.trim())
-        };
-
-        console.log('Sending data:', formDataToSend);
-        const response = await storyService.extractStories(formDataToSend);
+        console.log('Sending data:', this.formData);
+        const response = await storyService.extractStories(this.formData);
         this.status = {
           message: 'Stories extracted successfully!',
           type: 'success'
@@ -150,17 +146,14 @@ export default {
         let errorMessage = 'Failed to extract stories';
 
         if (error.response) {
-          // The server responded with an error
           console.error('Server response:', error.response);
           errorMessage = `Server Error (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
           if (error.response.data?.details) {
             errorMessage += `\nDetails: ${error.response.data.details}`;
           }
         } else if (error.request) {
-          // The request was made but no response was received
           errorMessage = 'No response received from server';
         } else {
-          // Something happened in setting up the request
           errorMessage = error.message;
         }
 
