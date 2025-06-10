@@ -67,16 +67,33 @@
         >
       </div>
 
-      <div class="form-group">
-        <label for="states">States (comma-separated)</label>
-        <input
-          id="states"
-          v-model.lazy="formData.states"
-          type="text"
-          class="form-control"
-          placeholder="Ready for Build, Build, Done"
-          required
-        >
+      <div class="states-container">
+        <label>States</label>
+        <div v-for="(state, index) in stateFields" :key="index" class="state-field-group">
+          <input
+            v-model.lazy="state.value"
+            type="text"
+            class="form-control"
+            :placeholder="index === 0 ? 'Ready for Build' : 'Enter state'"
+            required
+          >
+          <button
+            v-if="index === stateFields.length - 1"
+            type="button"
+            @click="addStateField"
+            class="add-state-button"
+          >
+            +
+          </button>
+          <button
+            v-if="index !== 0"
+            type="button"
+            @click="removeStateField(index)"
+            class="remove-state-button"
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       <div class="form-group checkbox-group">
@@ -119,10 +136,12 @@ export default {
         'v1.planningLevel': '',
         'v1.team': '',
         fromClosedDate: '',
-        states: '',
         includeStoryPoints: 'true',
         includeTeamName: 'true'
       },
+      stateFields: [
+        { value: '' }
+      ],
       status: {
         message: '',
         type: 'info' // 'success', 'error', or 'info'
@@ -130,6 +149,12 @@ export default {
     };
   },
   methods: {
+    addStateField() {
+      this.stateFields.push({ value: '' });
+    },
+    removeStateField(index) {
+      this.stateFields.splice(index, 1);
+    },
     downloadToFile(content, filename, contentType) {
       const blob = new Blob([content], { type: contentType });
       const url = URL.createObjectURL(blob);
@@ -146,8 +171,17 @@ export default {
       try {
         this.status = { message: 'Submitting...', type: 'info' };
 
-        console.log('Sending data:', this.formData);
-        const response = await storyService.extractStories(this.formData);
+        // Combine state fields into comma-separated string
+        const formDataToSend = {
+          ...this.formData,
+          states: this.stateFields
+            .map(state => state.value.trim())
+            .filter(state => state !== '')
+            .join(',')
+        };
+
+        console.log('Sending data:', formDataToSend);
+        const response = await storyService.extractStories(formDataToSend);
 
         const filename = `stories.csv`;
         this.downloadToFile(response.data, filename, 'text/csv');
@@ -253,5 +287,52 @@ label {
   background-color: #d9edf7;
   color: #31708f;
   border: 1px solid #bce8f1;
+}
+
+.states-container {
+  margin-bottom: 15px;
+}
+
+.state-field-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.state-field-group .form-control {
+  flex: 1;
+}
+
+.add-state-button,
+.remove-state-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.add-state-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.remove-state-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.add-state-button:hover {
+  background-color: #45a049;
+}
+
+.remove-state-button:hover {
+  background-color: #d32f2f;
 }
 </style>
