@@ -68,7 +68,16 @@
       </div>
 
       <div class="states-container">
-        <label>States (drag to reorder)</label>
+        <div class="states-header">
+          <label>States (drag to reorder)</label>
+          <button
+            type="button"
+            @click="addStateField"
+            class="add-state-button"
+          >
+            +
+          </button>
+        </div>
         <draggable
           v-model="stateFields"
           handle=".drag-handle"
@@ -83,14 +92,6 @@
               :placeholder="index === 0 ? 'Ready for Build' : 'Enter state'"
               required
             >
-            <button
-              v-if="index === stateFields.length - 1"
-              type="button"
-              @click="addStateField"
-              class="add-state-button"
-            >
-              +
-            </button>
             <button
               v-if="index !== 0"
               type="button"
@@ -302,6 +303,17 @@ label {
 
 .states-container {
   margin-bottom: 15px;
+}
+
+.states-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.states-header label {
+  margin-bottom: 0;
 }
 
 .state-fields-list {
