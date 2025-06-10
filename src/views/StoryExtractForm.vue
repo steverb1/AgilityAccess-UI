@@ -68,32 +68,39 @@
       </div>
 
       <div class="states-container">
-        <label>States</label>
-        <div v-for="(state, index) in stateFields" :key="index" class="state-field-group">
-          <input
-            v-model.lazy="state.value"
-            type="text"
-            class="form-control"
-            :placeholder="index === 0 ? 'Ready for Build' : 'Enter state'"
-            required
-          >
-          <button
-            v-if="index === stateFields.length - 1"
-            type="button"
-            @click="addStateField"
-            class="add-state-button"
-          >
-            +
-          </button>
-          <button
-            v-if="index !== 0"
-            type="button"
-            @click="removeStateField(index)"
-            class="remove-state-button"
-          >
-            ×
-          </button>
-        </div>
+        <label>States (drag to reorder)</label>
+        <draggable
+          v-model="stateFields"
+          handle=".drag-handle"
+          class="state-fields-list"
+        >
+          <div v-for="(state, index) in stateFields" :key="index" class="state-field-group">
+            <span class="drag-handle">☰</span>
+            <input
+              v-model.lazy="state.value"
+              type="text"
+              class="form-control"
+              :placeholder="index === 0 ? 'Ready for Build' : 'Enter state'"
+              required
+            >
+            <button
+              v-if="index === stateFields.length - 1"
+              type="button"
+              @click="addStateField"
+              class="add-state-button"
+            >
+              +
+            </button>
+            <button
+              v-if="index !== 0"
+              type="button"
+              @click="removeStateField(index)"
+              class="remove-state-button"
+            >
+              ×
+            </button>
+          </div>
+        </draggable>
       </div>
 
       <div class="form-group checkbox-group">
@@ -125,9 +132,13 @@
 
 <script>
 import { storyService } from '@/services/storyService';
+import draggable from 'vuedraggable';
 
 export default {
   name: 'StoryExtractForm',
+  components: {
+    draggable
+  },
   data() {
     return {
       formData: {
@@ -293,46 +304,31 @@ label {
   margin-bottom: 15px;
 }
 
+.state-fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drag-handle {
+  cursor: move;
+  padding: 8px;
+  color: #666;
+  user-select: none;
+}
+
+.drag-handle:hover {
+  color: #333;
+}
+
 .state-field-group {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
   align-items: center;
-}
-
-.state-field-group .form-control {
-  flex: 1;
-}
-
-.add-state-button,
-.remove-state-button {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0;
-}
-
-.add-state-button {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.remove-state-button {
-  background-color: #f44336;
-  color: white;
-}
-
-.add-state-button:hover {
-  background-color: #45a049;
-}
-
-.remove-state-button:hover {
-  background-color: #d32f2f;
+  background: white;
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
 }
 </style>
