@@ -130,14 +130,30 @@ export default {
     };
   },
   methods: {
+    downloadToFile(content, filename, contentType) {
+      const blob = new Blob([content], { type: contentType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    },
+
     async handleSubmit() {
       try {
         this.status = { message: 'Submitting...', type: 'info' };
 
         console.log('Sending data:', this.formData);
         const response = await storyService.extractStories(this.formData);
+
+        const filename = `stories.csv`;
+        this.downloadToFile(response.data, filename, 'text/csv');
+
         this.status = {
-          message: 'Stories extracted successfully!',
+          message: `Stories extracted successfully! Downloading as ${filename}`,
           type: 'success'
         };
         console.log('Success:', response.data);
