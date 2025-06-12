@@ -8,7 +8,7 @@
 
     <div class="form-container">
       <div class="form-group">
-        <label for="url">V1 URL</label>
+        <label for="url" class="required">V1 URL</label>
         <input
             id="url"
             v-model.lazy="formData['v1.url']"
@@ -25,7 +25,7 @@
       </div>
 
       <div class="form-group">
-        <label for="token">V1 Token</label>
+        <label for="token" class="required">V1 Token</label>
         <input
           id="token"
           v-model.lazy="formData['v1.token']"
@@ -41,8 +41,8 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Select Scope</label>
+      <div class="form-group" :class="{ 'is-invalid': scopeError }">
+        <label class="required">Select Team(s)</label>
         <div class="scope-selection">
           <div class="radio-group">
             <input
@@ -58,8 +58,8 @@
               v-model.lazy="formData['v1.planningLevel']"
               type="text"
               class="form-control"
-              placeholder="Scope:1005"
-              required
+              placeholder="Scope:xxxx"
+              @blur="validateScope"
             >
           </div>
 
@@ -71,16 +71,19 @@
               value="team"
               v-model="selectedScope"
             >
-            <label for="team">Team</label>
+            <label for="team">Single Team</label>
             <input
               v-if="selectedScope === 'team'"
               v-model.lazy="formData['v1.team']"
               type="text"
               class="form-control"
-              placeholder="Team:1889"
-              required
+              placeholder="Team:xxxx"
+              @blur="validateScope"
             >
           </div>
+        </div>
+        <div v-if="scopeError" class="invalid-feedback">
+          {{ scopeError }}
         </div>
       </div>
 
@@ -188,7 +191,8 @@ export default {
         type: 'info'
       },
       urlError: '',
-      tokenError: ''
+      tokenError: '',
+      scopeError: ''
     };
   },
   methods: {
@@ -224,13 +228,22 @@ export default {
     validateToken() {
       this.tokenError = this.formData['v1.token'].trim() === '' ? 'V1 Token is required' : '';
     },
+    validateScope() {
+      if (this.selectedScope === 'planningLevel' && !this.formData['v1.planningLevel'] ||
+      this.selectedScope === 'team' && !this.formData['v1.team']) {
+        this.scopeError = 'Team(s) selection is required';
+      } else {
+        this.scopeError = '';
+      }
+    },
 
     async handleSubmit() {
       // Validate both fields
       this.validateUrl();
       this.validateToken();
+      this.validateScope();
 
-      if (this.urlError || this.tokenError) {
+      if (this.urlError || this.tokenError || this.scopeError) {
         this.status = {
           message: 'Required fields are missing or invalid',
           type: 'error'
@@ -308,7 +321,7 @@ label {
 }
 
 /* Add styling for required field asterisks */
-label:has(+ input[required])::before {
+.form-group > label.required::before {
   content: '* ';
   color: #a94442;
 }
@@ -419,6 +432,13 @@ label:has(+ input[required])::before {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form-group.is-invalid .scope-selection {
+  border-color: #a94442;
 }
 
 .radio-group {
