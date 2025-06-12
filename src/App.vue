@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <h1>Debug: App is mounted</h1>
     <router-view/>
   </div>
 </template>
