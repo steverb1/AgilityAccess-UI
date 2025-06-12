@@ -8,27 +8,37 @@
 
     <div class="form-container">
       <div class="form-group">
+        <label for="url">V1 URL</label>
+        <input
+            id="url"
+            v-model.lazy="formData['v1.url']"
+            type="url"
+            class="form-control"
+            :class="{ 'is-invalid': urlError }"
+            placeholder="https://www16.v1host.com/api-examples"
+            @blur="validateUrl"
+            required
+        >
+        <div v-if="urlError" class="invalid-feedback">
+          {{ urlError }}
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="token">V1 Token</label>
         <input
           id="token"
           v-model.lazy="formData['v1.token']"
           type="password"
           class="form-control"
+          :class="{ 'is-invalid': tokenError }"
           placeholder="Enter your V1 token"
+          @blur="validateToken"
           required
         >
-      </div>
-
-      <div class="form-group">
-        <label for="url">V1 URL</label>
-        <input
-          id="url"
-          v-model.lazy="formData['v1.url']"
-          type="url"
-          class="form-control"
-          placeholder="https://www16.v1host.com/api-examples"
-          required
-        >
+        <div v-if="tokenError" class="invalid-feedback">
+          {{ tokenError }}
+        </div>
       </div>
 
       <div class="form-group">
@@ -176,7 +186,9 @@ export default {
       status: {
         message: '',
         type: 'info'
-      }
+      },
+      urlError: '',
+      tokenError: ''
     };
   },
   methods: {
@@ -197,8 +209,35 @@ export default {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     },
+    validateUrl() {
+      if (!this.formData['v1.url']) {
+        this.urlError = 'V1 URL is required';
+        return;
+      }
+      try {
+        new URL(this.formData['v1.url']);
+        this.urlError = '';
+      } catch (e) {
+        this.urlError = 'Invalid URL format';
+      }
+    },
+    validateToken() {
+      this.tokenError = this.formData['v1.token'].trim() === '' ? 'V1 Token is required' : '';
+    },
 
     async handleSubmit() {
+      // Validate both fields
+      this.validateUrl();
+      this.validateToken();
+
+      if (this.urlError || this.tokenError) {
+        this.status = {
+          message: 'Required fields are missing or invalid',
+          type: 'error'
+        };
+        return;
+      }
+
       try {
         this.status = { message: 'Submitting...', type: 'info' };
 
@@ -262,14 +301,20 @@ export default {
   padding: 20px;
 }
 
-.form-group {
-  margin-bottom: 15px;
-}
-
 label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
+}
+
+/* Add styling for required field asterisks */
+label:has(+ input[required])::before {
+  content: '* ';
+  color: #a94442;
+}
+
+.form-group {
+  margin-bottom: 15px;
 }
 
 .form-control {
@@ -389,5 +434,11 @@ label {
 .radio-group label {
   margin-bottom: 0;
   font-weight: normal;
+}
+
+.invalid-feedback {
+  color: #a94442;
+  font-size: 12px;
+  margin-top: 5px;
 }
 </style>
