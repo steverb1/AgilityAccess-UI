@@ -100,7 +100,7 @@
 
       <div class="states-container">
         <div class="states-header">
-          <label>States (drag to reorder)</label>
+          <label class="required">States (drag to reorder)</label>
           <button
             type="button"
             @click="addStateField"
@@ -120,11 +120,13 @@
               v-model.lazy="state.value"
               type="text"
               class="form-control"
-              :placeholder="index === 0 ? 'Ready for Build' : 'Enter state'"
+              :class="{ 'is-invalid': statesError && !state.value.trim() }"
+              :placeholder="index === 0 ? 'Ready for Build' : index === 1 ? 'Done' : 'Enter state'"
+              @blur="validateStates"
               required
             >
             <button
-              v-if="index !== 0"
+              v-if="canRemoveState && index >= 2"
               type="button"
               @click="removeStateField(index)"
               class="remove-state-button"
@@ -133,6 +135,9 @@
             </button>
           </div>
         </draggable>
+        <div v-if="statesError" class="invalid-feedback d-block">
+          {{ statesError }}
+        </div>
       </div>
 
       <div class="form-group checkbox-group">
@@ -173,7 +178,7 @@ export default {
   },
   data() {
     return {
-      selectedScope: 'planningLevel', // Default selection
+      selectedScope: 'planningLevel',
       formData: {
         'v1.token': '',
         'v1.url': '',
@@ -184,6 +189,7 @@ export default {
         includeTeamName: 'true'
       },
       stateFields: [
+        { value: '' },
         { value: '' }
       ],
       status: {
@@ -192,15 +198,23 @@ export default {
       },
       urlError: '',
       tokenError: '',
-      scopeError: ''
+      scopeError: '',
+      statesError: ''
     };
+  },
+  computed: {
+    canRemoveState() {
+      return this.stateFields.length > 2;
+    }
   },
   methods: {
     addStateField() {
       this.stateFields.push({ value: '' });
     },
     removeStateField(index) {
-      this.stateFields.splice(index, 1);
+      if (this.canRemoveState) {
+        this.stateFields.splice(index, 1);
+      }
     },
     downloadToFile(content, filename, contentType) {
       const blob = new Blob([content], { type: contentType });
@@ -236,14 +250,24 @@ export default {
         this.scopeError = '';
       }
     },
+    validateStates() {
+      const filledStates = this.stateFields.filter(state => state.value.trim() !== '');
+      if (filledStates.length < 2) {
+        this.statesError = 'At least 2 states are required';
+        return false;
+      }
+      this.statesError = '';
+      return true;
+    },
 
     async handleSubmit() {
-      // Validate both fields
+      // Validate all fields
       this.validateUrl();
       this.validateToken();
       this.validateScope();
+      this.validateStates();
 
-      if (this.urlError || this.tokenError || this.scopeError) {
+      if (this.urlError || this.tokenError || this.scopeError || this.statesError) {
         this.status = {
           message: 'Required fields are missing or invalid',
           type: 'error'
