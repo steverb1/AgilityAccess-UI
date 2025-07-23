@@ -1,6 +1,6 @@
 <template>
   <div class="story-extract-form">
-    <h2>Extract Stories - test</h2>
+    <h2>Extract Stories</h2>
 
     <div v-if="status.message" :class="['status-message', status.type]">
       {{ status.message }}
