@@ -88,6 +88,30 @@
       </div>
 
       <div class="form-group">
+        <label class="required">Work Item Type</label>
+        <div class="radio-group">
+          <input
+            type="radio"
+            id="story"
+            name="workItemType"
+            value="Story"
+            v-model="formData.workItemType"
+            checked
+          >
+          <label for="story">Story</label>
+
+          <input
+            type="radio"
+            id="epic"
+            name="workItemType"
+            value="Epic"
+            v-model="formData.workItemType"
+          >
+          <label for="epic">Epic</label>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="fromClosedDate">From Closed Date</label>
         <input
           id="fromClosedDate"
@@ -184,6 +208,7 @@ export default {
         'v1.url': '',
         'v1.planningLevel': '',
         'v1.team': '',
+        workItemType: 'story',
         fromClosedDate: '',
         includeStoryPoints: 'true',
         includeTeamName: 'true'

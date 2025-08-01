@@ -3,3 +3,4 @@ npm run build
 
 # To run locally
 npm run serve
+Also need to edit the .env file to use localhost.
